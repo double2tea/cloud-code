@@ -15,6 +15,9 @@
       "enabled": true,
     },
   },
+	"placement": {
+    "region": "aws:us-west-1",
+  },
   "containers": [
     {
       "name": "cloud-code-container",
