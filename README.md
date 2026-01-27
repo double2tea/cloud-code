@@ -1,8 +1,8 @@
 # Cloud Code (Cloudflare + OpenCode)
 
-**Cloud Code** 是一个结合了 Cloudflare 强大基础设施与 OpenCode 智能能力的容器化代理解决方案。
+**Cloud Code** 是一个结合了 Cloudflare 强大基础设施与 OpenCode 智能能力的容器化 Agent 解决方案。
 
-这是一个基于 Cloudflare Workers 和 [Cloudflare Containers](https://developers.cloudflare.com/workers/runtime-apis/container/) 的 TypeScript 项目。它利用 Cloudflare 的基础设施来运行和管理容器化工作负载。
+这是一个基于 Cloudflare Workers 和 Cloudflare Containers 的 TypeScript 项目。它利用 Cloudflare 的基础设施来运行和管理容器化工作负载。
 
 ## 🚀 快速开始
 
@@ -136,7 +136,7 @@ cloudflared tunnel --url http://localhost:8080
   - `nikolaik/python-nodejs`: Python 3.12 + Node.js 22
   - `tigrisfs`: S3 文件系统挂载
   - `cloudflared`: Cloudflare Tunnel 客户端
-  - `opencode`: 智能编码代理
+  - `opencode`: 智能编码 Agent
 
 ## 📝 开发规范
 
