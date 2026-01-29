@@ -2,7 +2,7 @@
 name: cloud-code
 type: docker
 
-# 构建配置
+# 构建配置 - 使用无 FUSE 的 Dockerfile
 build:
   dockerfile: Dockerfile
   context: .
@@ -27,8 +27,8 @@ healthcheck:
   initial_delay: 30
   timeout: 10
 
-# 持久化存储
+# 持久化存储（可选，因为我们使用 S3）
 volumes:
   - name: workspace
-    mount: /root/s3/workspace
-    size: 5Gi
+    mount: /root/workspace
+    size: 2Gi
