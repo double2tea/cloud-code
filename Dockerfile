@@ -3,7 +3,7 @@ FROM nikolaik/python-nodejs:python3.12-nodejs22-bookworm
 ENV NODE_ENV=production
 
 ARG TIGRISFS_VERSION=1.2.1
-ARG CLOUDFLARED_DEB_URL=https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+ARG TARGETARCH
 
 # Install system dependencies + tigrisfs/cloudflared/opencode, then clean cache
 RUN set -eux; \
@@ -13,14 +13,33 @@ RUN set -eux; \
       ca-certificates \
       curl; \
     \
-    curl -fsSL "https://github.com/tigrisdata/tigrisfs/releases/download/v${TIGRISFS_VERSION}/tigrisfs_${TIGRISFS_VERSION}_linux_amd64.deb" -o /tmp/tigrisfs.deb; \
+    # 根据架构选择正确的二进制文件
+    case "${TARGETARCH:-amd64}" in \
+        amd64) \
+            TIGRISFS_ARCH="linux_amd64"; \
+            CLOUDFLARED_ARCH="linux-amd64"; \
+            ;; \
+        arm64) \
+            TIGRISFS_ARCH="linux_arm64"; \
+            CLOUDFLARED_ARCH="linux-arm64"; \
+            ;; \
+        *) \
+            echo "Unsupported architecture: ${TARGETARCH}"; \
+            exit 1; \
+            ;; \
+    esac; \
+    \
+    # 下载并安装 tigrisfs
+    curl -fsSL "https://github.com/tigrisdata/tigrisfs/releases/download/v${TIGRISFS_VERSION}/tigrisfs_${TIGRISFS_VERSION}_${TIGRISFS_ARCH}.deb" -o /tmp/tigrisfs.deb; \
     dpkg -i /tmp/tigrisfs.deb; \
     rm -f /tmp/tigrisfs.deb; \
     \
-    curl -fsSL "${CLOUDFLARED_DEB_URL}" -o /tmp/cloudflared.deb; \
+    # 下载并安装 cloudflared
+    curl -fsSL "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-${CLOUDFLARED_ARCH}.deb" -o /tmp/cloudflared.deb; \
     dpkg -i /tmp/cloudflared.deb; \
     rm -f /tmp/cloudflared.deb; \
     \
+    # 安装 opencode
     curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path; \
     mv /root/.opencode/bin/opencode /usr/local/bin/opencode; \
     \
