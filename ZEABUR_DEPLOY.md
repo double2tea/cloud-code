@@ -1,25 +1,29 @@
-# Zeabur 部署指南
+# Zeabur 部署指南 (无 FUSE 版本)
 
 ## 🚀 快速部署到 Zeabur
 
+### ✅ 问题解决
+- **移除 FUSE 依赖** - 不再需要 `fusermount` 和 `TigrisFS`
+- **直接 S3 访问** - 使用 AWS CLI 和 SDK 直接操作 S3
+- **定期同步** - 每 5 分钟自动同步到 S3
+- **优雅关闭** - 关闭时自动保存到 S3
+
 ### 方法 1: 通过 GitHub 部署 (推荐)
 
-1. **推送代码到 GitHub**
+1. **推送更新的代码**
    ```bash
-   git add .
-   git commit -m "Add Zeabur deployment configuration"
-   git push origin main
+   git add Dockerfile.zeabur
+   git commit -m "Fix FUSE issue: Use direct S3 access instead of FUSE mounting"
+   git push origin master
    ```
 
-2. **在 Zeabur 控制台部署**
+2. **在 Zeabur 控制台重新部署**
    - 访问 [Zeabur 控制台](https://dash.zeabur.com)
-   - 点击 "New Project"
-   - 选择 "Deploy from GitHub"
-   - 选择你的 `cloud-code` 仓库
-   - Zeabur 会自动检测 Dockerfile 并开始构建
+   - 找到你的项目
+   - 点击 "Redeploy" 或触发新的部署
 
 3. **配置环境变量**
-   在 Zeabur 项目设置中添加以下环境变量：
+   确保以下环境变量已设置：
    ```
    NODE_ENV=production
    PORT=2633
@@ -32,54 +36,56 @@
    S3_PREFIX=cloud-code
    ```
 
-### 方法 2: 直接上传部署
+## 🔧 新的工作方式
 
-1. **创建项目压缩包**
-   ```bash
-   tar -czf cloud-code.tar.gz --exclude=node_modules --exclude=.git .
-   ```
+### S3 同步机制
+- **启动时**: 从 S3 下载现有文件到本地工作区
+- **运行时**: 每 5 分钟自动同步本地更改到 S3
+- **关闭时**: 最终同步确保数据不丢失
 
-2. **在 Zeabur 控制台**
-   - 选择 "Upload Files"
-   - 上传 `cloud-code.tar.gz`
-   - 配置环境变量（同上）
-
-### 方法 3: 使用 Docker Hub
-
-1. **构建并推送镜像**
-   ```bash
-   docker build -f Dockerfile.zeabur -t your-username/cloud-code:latest .
-   docker push your-username/cloud-code:latest
-   ```
-
-2. **在 Zeabur 部署**
-   - 选择 "Deploy from Docker Image"
-   - 输入镜像名: `your-username/cloud-code:latest`
+### 优势
+- ✅ **兼容 Zeabur** - 不依赖 FUSE 设备
+- ✅ **数据持久化** - 文件自动保存到 S3
+- ✅ **性能优化** - 本地操作，定期同步
+- ✅ **容错性强** - 即使 S3 不可用也能正常运行
 
 ## 📋 部署后检查
 
-1. **访问应用**
-   - Zeabur 会提供一个公网 URL
-   - 访问该 URL 确认服务正常运行
+1. **查看启动日志**
+   ```
+   [INFO] Setting up S3 configuration for direct access
+   [OK] S3 connection successful
+   [INFO] Syncing files from S3...
+   [INFO] Background S3 sync started (PID: xxx)
+   [INFO] Starting OpenCode on port 2633...
+   ```
 
-2. **查看日志**
-   - 在 Zeabur 控制台查看应用日志
-   - 确认 OpenCode 正常启动
+2. **测试功能**
+   - 访问 Zeabur 提供的 URL
+   - 创建/编辑文件
+   - 等待 5 分钟后检查 S3 存储桶
 
-3. **测试功能**
-   - 确认 AI 编程助手功能正常
-   - 测试文件上传和 S3 存储
+3. **监控同步**
+   - 查看应用日志中的同步消息
+   - 检查 S3 存储桶中的文件更新
 
-## 🔧 故障排除
+## 🛠️ 故障排除
 
-- **构建失败**: 检查 Dockerfile.zeabur 语法
-- **启动失败**: 查看环境变量配置
-- **访问失败**: 确认端口配置 (2633)
+### 常见问题
+- **S3 连接失败**: 检查环境变量配置
+- **同步失败**: 检查 S3 权限和网络连接
+- **启动慢**: AWS CLI 安装需要时间，属正常现象
 
-## 💡 优势
+### 日志关键词
+- `[OK] S3 connection successful` - S3 连接成功
+- `[INFO] Background S3 sync started` - 同步进程启动
+- `[INFO] Syncing workspace to S3` - 定期同步执行
 
-- ✅ 自动 HTTPS
-- ✅ 全球 CDN
-- ✅ 自动扩容
-- ✅ 零配置部署
-- ✅ 免费额度
+## 💡 性能优化
+
+- **本地优先**: 所有操作在本地进行，响应快速
+- **批量同步**: 避免频繁的 S3 操作
+- **增量同步**: 只同步变更的文件
+- **后台处理**: 同步不影响主服务
+
+现在你的应用应该能在 Zeabur 上正常运行了！🎉
